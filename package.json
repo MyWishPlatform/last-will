@@ -4,7 +4,7 @@
   "repository": "https://github.com/MyWishPlatform/last-will.git",
   "license": "ISC",
   "scripts": {
-    "build-contracts": "sol-merger './contracts/*.sol' ./build",
+    "combine-contracts": "combine-contracts LastWill LastWillNotify",
     "compile": "truffle compile",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -21,12 +21,11 @@
     "eslint-plugin-promise": "^3.8.0",
     "eslint-plugin-standard": "^3.1.0",
     "ganache-core": "^2.1.2",
-    "sol-merger": "^0.1.2",
     "solhint": "^1.2.1",
     "truffle": "^4.1.11"
   },
   "dependencies": {
     "openzeppelin-solidity": "1.10.0",
-    "sc-library": "github:MyWishPlatform/sc-library#0.2.1"
+    "sc-library": "github:MyWishPlatform/sc-library#0.3.0"
   }
 }
