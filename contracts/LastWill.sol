@@ -1,5 +1,6 @@
 pragma solidity ^0.4.23;
 
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20Basic.sol";
 import "sc-library/contracts/Checkable.sol";
 import "sc-library/contracts/SoftDestruct.sol";
 
@@ -14,6 +15,16 @@ contract LastWill is SoftDestruct, Checkable {
     }
 
     /**
+     * Maximum length of token contracts addresses list
+     */
+    uint public constant TOKEN_ADDRESSES_LIMIT = 10;
+
+    /**
+     * Addresses of token contracts
+     */
+    address[] public tokenAddresses;
+
+    /**
      * Recipient addresses and corresponding % of funds.
      */
     RecipientPercent[] private percents;
@@ -26,9 +37,15 @@ contract LastWill is SoftDestruct, Checkable {
     // Occurs when accident leads to sending funds to recipient.
     event FundsSent(address recipient, uint amount, uint percent);
 
+    event TokensAdded(address token, address indexed from, uint amount);
+    event TokensSent(address token, address recipient, uint amount, uint percent);
+
     // ------------ CONSTRUCT -------------
-    constructor(address _targetUser, address[] _recipients, uint[] _percents) public
-            SoftDestruct(_targetUser) {
+    constructor(
+        address _targetUser,
+        address[] _recipients,
+        uint[] _percents
+    ) public SoftDestruct(_targetUser) {
         require(_recipients.length == _percents.length);
         percents.length = _recipients.length;
         // check percents
@@ -48,6 +65,24 @@ contract LastWill is SoftDestruct, Checkable {
     // Must be less than 2300 gas
     function () public payable onlyAlive() notTriggered {
         emit FundsAdded(msg.sender, msg.value);
+    }
+
+    function addTokenAddresses(address[] _contracts) external onlyTarget notTriggered {
+        require(tokenAddresses.length + _contracts.length <= TOKEN_ADDRESSES_LIMIT);
+        for (uint i = 0; i < _contracts.length; i++) {
+            _addTokenAddress(_contracts[i]);
+        }
+    }
+
+    function addTokenAddress(address _contract) public onlyTarget notTriggered {
+        require(tokenAddresses.length < TOKEN_ADDRESSES_LIMIT);
+        _addTokenAddress(_contract);
+    }
+
+    function _addTokenAddress(address _contract) public {
+        require(_contract != address(0));
+        require(!isTokenAddressAlreadyInList(_contract));
+        tokenAddresses.push(_contract);
     }
 
     /**
@@ -99,10 +134,39 @@ contract LastWill is SoftDestruct, Checkable {
         }
     }
 
+    function distributeTokens() internal {
+        for (uint i = 0; i < tokenAddresses.length; i++) {
+            ERC20Basic token = ERC20Basic(tokenAddresses[i]);
+            uint[] memory amounts = new uint[](percents.length);
+            uint change = calculateAmounts(token.balanceOf(this), amounts);
+
+            for (uint j = 0; j < amounts.length; j++) {
+                uint amount = amounts[j];
+                address recipient = percents[j].recipient;
+                uint percent = percents[j].percent;
+
+                if (amount == 0) {
+                    continue;
+                }
+
+                token.transfer(recipient, amount + change);
+                emit TokensSent(token, recipient, amount, percent);
+            }
+        }
+    }
+
     /**
      * @dev Do inner action if check was success.
      */
     function internalAction() internal {
         distributeFunds();
+        distributeTokens();
+    }
+
+    function isTokenAddressAlreadyInList(address _contract) internal view returns (bool) {
+        for (uint i = 0; i < tokenAddresses.length; i++) {
+            if (tokenAddresses[i] == _contract) return true;
+        }
+        return false;
     }
 }
