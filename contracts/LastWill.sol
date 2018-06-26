@@ -104,12 +104,17 @@ contract LastWill is SoftDestruct, Checkable {
     /**
      * Calculate amounts to transfer corresponding to the percents.
      */
-    function calculateAmounts(uint balance, uint[] amounts) internal view returns (uint change) {
-        change = balance;
+    function calculateAmounts(uint balance) internal view returns (uint[] amounts) {
+        uint remainder = balance;
+        amounts = new uint[](percents.length);
         for (uint i = 0; i < percents.length; i++) {
+            if (i + 1 == percents.length) {
+                amounts[i] = remainder;
+                break;
+            }
             uint amount = balance * percents[i].percent / 100;
             amounts[i] = amount;
-            change -= amount;
+            remainder -= amount;
         }
     }
 
@@ -117,8 +122,7 @@ contract LastWill is SoftDestruct, Checkable {
      * Distribute funds between recipients in corresponding by percents.
      */
     function distributeFunds() internal {
-        uint[] memory amounts = new uint[](percents.length);
-        uint change = calculateAmounts(address(this).balance, amounts);
+        uint[] memory amounts = calculateAmounts(address(this).balance);
 
         for (uint i = 0; i < amounts.length; i++) {
             uint amount = amounts[i];
@@ -129,7 +133,7 @@ contract LastWill is SoftDestruct, Checkable {
                 continue;
             }
 
-            recipient.transfer(amount + change);
+            recipient.transfer(amount);
             emit FundsSent(recipient, amount, percent);
         }
     }
@@ -137,8 +141,7 @@ contract LastWill is SoftDestruct, Checkable {
     function distributeTokens() internal {
         for (uint i = 0; i < tokenAddresses.length; i++) {
             ERC20Basic token = ERC20Basic(tokenAddresses[i]);
-            uint[] memory amounts = new uint[](percents.length);
-            uint change = calculateAmounts(token.balanceOf(this), amounts);
+            uint[] memory amounts = calculateAmounts(token.balanceOf(this));
 
             for (uint j = 0; j < amounts.length; j++) {
                 uint amount = amounts[j];
@@ -149,7 +152,7 @@ contract LastWill is SoftDestruct, Checkable {
                     continue;
                 }
 
-                token.transfer(recipient, amount + change);
+                token.transfer(recipient, amount);
                 emit TokensSent(token, recipient, amount, percent);
             }
         }
