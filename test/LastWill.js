@@ -97,7 +97,7 @@ contract('LastWill', function (accounts) {
 
     it('#5 token distribution to multiple addresses', async () => {
         const tokens = await Promise.all(Array(...Array(2)).map(_ => SimpleToken.new()));
-        const lastWill = await LastWill.new(TARGET, [RECIPIENT_1], [100], 2 * MINUTE, true);
+        const lastWill = await LastWill.new(TARGET, [RECIPIENT_1, RECIPIENT_2], [50, 50], 2 * MINUTE, true);
         await lastWill.addTokenAddresses(tokens.map(t => t.address));
 
         await lastWill.sendTransaction({ value: web3.toWei(1, 'ether') });
@@ -105,26 +105,46 @@ contract('LastWill', function (accounts) {
 
         increaseTime(3 * MINUTE);
         const tx = await lastWill.check();
-        tx.logs.length.should.be.equals(5);
+
+        tx.logs.length.should.be.equals(8);
 
         tx.logs[2].event.should.be.equals('FundsSent');
         tx.logs[2].args.recipient.should.be.equals(RECIPIENT_1);
-        tx.logs[2].args.amount.should.be.bignumber.equal(web3.toWei(1, 'ether'));
-        tx.logs[2].args.percent.should.be.bignumber.equal(100);
+        tx.logs[2].args.amount.should.be.bignumber.equal(web3.toWei(0.5, 'ether'));
+        tx.logs[2].args.percent.should.be.bignumber.equal(50);
 
-        tx.logs[3].event.should.be.equals('TokensSent');
-        tx.logs[3].args.token.should.be.equals(tokens[0].address);
-        tx.logs[3].args.recipient.should.be.equals(RECIPIENT_1);
-        tx.logs[3].args.amount.should.be.bignumber.equal(1000);
-        tx.logs[3].args.percent.should.be.bignumber.equal(100);
+        tx.logs[3].event.should.be.equals('FundsSent');
+        tx.logs[3].args.recipient.should.be.equals(RECIPIENT_2);
+        tx.logs[3].args.amount.should.be.bignumber.equal(web3.toWei(0.5, 'ether'));
+        tx.logs[3].args.percent.should.be.bignumber.equal(50);
 
         tx.logs[4].event.should.be.equals('TokensSent');
-        tx.logs[4].args.token.should.be.equals(tokens[1].address);
+        tx.logs[4].args.token.should.be.equals(tokens[0].address);
         tx.logs[4].args.recipient.should.be.equals(RECIPIENT_1);
-        tx.logs[4].args.amount.should.be.bignumber.equal(1000);
-        tx.logs[4].args.percent.should.be.bignumber.equal(100);
+        tx.logs[4].args.amount.should.be.bignumber.equal(500);
+        tx.logs[4].args.percent.should.be.bignumber.equal(50);
 
-        (await tokens[0].balanceOf(RECIPIENT_1)).should.be.bignumber.equal(1000);
-        (await tokens[1].balanceOf(RECIPIENT_1)).should.be.bignumber.equal(1000);
+        tx.logs[5].event.should.be.equals('TokensSent');
+        tx.logs[5].args.token.should.be.equals(tokens[0].address);
+        tx.logs[5].args.recipient.should.be.equals(RECIPIENT_2);
+        tx.logs[5].args.amount.should.be.bignumber.equal(500);
+        tx.logs[5].args.percent.should.be.bignumber.equal(50);
+
+        tx.logs[6].event.should.be.equals('TokensSent');
+        tx.logs[6].args.token.should.be.equals(tokens[1].address);
+        tx.logs[6].args.recipient.should.be.equals(RECIPIENT_1);
+        tx.logs[6].args.amount.should.be.bignumber.equal(500);
+        tx.logs[6].args.percent.should.be.bignumber.equal(50);
+
+        tx.logs[7].event.should.be.equals('TokensSent');
+        tx.logs[7].args.token.should.be.equals(tokens[1].address);
+        tx.logs[7].args.recipient.should.be.equals(RECIPIENT_2);
+        tx.logs[7].args.amount.should.be.bignumber.equal(500);
+        tx.logs[7].args.percent.should.be.bignumber.equal(50);
+
+        (await tokens[0].balanceOf(RECIPIENT_1)).should.be.bignumber.equal(500);
+        (await tokens[0].balanceOf(RECIPIENT_2)).should.be.bignumber.equal(500);
+        (await tokens[1].balanceOf(RECIPIENT_1)).should.be.bignumber.equal(500);
+        (await tokens[1].balanceOf(RECIPIENT_2)).should.be.bignumber.equal(500);
     });
 });
