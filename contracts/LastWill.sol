@@ -36,8 +36,7 @@ contract LastWill is SoftDestruct, Checkable {
     event FundsAdded(address indexed from, uint amount);
     // Occurs when accident leads to sending funds to recipient.
     event FundsSent(address recipient, uint amount, uint percent);
-
-    event TokensAdded(address token, address indexed from, uint amount);
+    // Occurs when accident leads to sending tokens to recipient
     event TokensSent(address token, address recipient, uint amount, uint percent);
 
     // ------------ CONSTRUCT -------------
