@@ -22,7 +22,7 @@ contract LastWill is SoftDestruct, Checkable {
     /**
      * Addresses of token contracts
      */
-    address[] public tokenAddresses;
+    address[] private tokenAddresses;
 
     /**
      * Recipient addresses and corresponding % of funds.
@@ -78,10 +78,17 @@ contract LastWill is SoftDestruct, Checkable {
         _addTokenAddress(_contract);
     }
 
-    function _addTokenAddress(address _contract) public {
+    function deleteTokenAddress(address _contract) public onlyTarget {
         require(_contract != address(0));
-        require(!isTokenAddressAlreadyInList(_contract));
-        tokenAddresses.push(_contract);
+        require(isTokenAddressAlreadyInList(_contract));
+        for (uint i = 0; i < tokenAddresses.length; i++) {
+            if (tokenAddresses[i] == _contract) {
+                tokenAddresses[i] = tokenAddresses[tokenAddresses.length - 1];
+                delete tokenAddresses[tokenAddresses.length - 1];
+                tokenAddresses.length--;
+                break;
+            }
+        }
     }
 
     /**
@@ -99,7 +106,17 @@ contract LastWill is SoftDestruct, Checkable {
         emit Killed(true);
     }
 
+    function getTokenAddresses() public view returns (address[]) {
+        return tokenAddresses;
+    }
+
     // ------------ INTERNAL -------------
+    function _addTokenAddress(address _contract) internal {
+        require(_contract != address(0));
+        require(!isTokenAddressAlreadyInList(_contract));
+        tokenAddresses.push(_contract);
+    }
+
     /**
      * Calculate amounts to transfer corresponding to the percents.
      */

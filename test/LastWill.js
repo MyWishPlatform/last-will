@@ -147,4 +147,25 @@ contract('LastWill', function (accounts) {
         (await tokens[1].balanceOf(RECIPIENT_1)).should.be.bignumber.equal(500);
         (await tokens[1].balanceOf(RECIPIENT_2)).should.be.bignumber.equal(500);
     });
+
+    it('#6 token address deletion', async () => {
+        const tokens = await Promise.all(Array(...Array(2)).map(_ => SimpleToken.new().then(t => t.address)));
+        const lastWill = await LastWill.new(TARGET, [RECIPIENT_1], [100], 2 * MINUTE, true);
+
+        await lastWill.addTokenAddresses(tokens);
+        let addressesInContract = await lastWill.getTokenAddresses();
+        addressesInContract[0].should.be.equals(tokens[0]);
+        addressesInContract[1].should.be.equals(tokens[1]);
+
+        await lastWill.deleteTokenAddress(tokens[0]);
+        addressesInContract = await lastWill.getTokenAddresses();
+        addressesInContract.length.should.be.equals(1);
+        addressesInContract[0].should.be.equals(tokens[1]);
+
+        await lastWill.addTokenAddress(tokens[0]);
+        await lastWill.deleteTokenAddress(tokens[1]);
+        addressesInContract = await lastWill.getTokenAddresses();
+        addressesInContract.length.should.be.equals(1);
+        addressesInContract[0].should.be.equals(tokens[0]);
+    });
 });
