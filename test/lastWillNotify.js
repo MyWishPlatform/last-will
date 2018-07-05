@@ -3,8 +3,8 @@ require('chai')
     .use(require('chai-as-promised'))
     .should();
 
-const { increaseTime } = require('sc-library/scripts/evmMethods');
-const { web3async } = require('sc-library/scripts/web3Utils');
+const { increaseTime } = require('sc-library/test-utils/evmMethods');
+const { web3async } = require('sc-library/test-utils/web3Utils');
 const getTime = () => web3async(web3.eth, web3.eth.getBlock, 'latest').then(block => block.timestamp);
 const getBalance = (address) => web3async(web3.eth, web3.eth.getBalance, address);
 

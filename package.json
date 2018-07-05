@@ -4,7 +4,7 @@
   "repository": "https://github.com/MyWishPlatform/last-will.git",
   "license": "ISC",
   "scripts": {
-    "combine-contracts": "combine-contracts LastWill LastWillNotify",
+    "combine-contracts": "combine-contracts LastWillNotify",
     "compile": "truffle compile",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -26,6 +26,6 @@
   },
   "dependencies": {
     "openzeppelin-solidity": "1.10.0",
-    "sc-library": "github:MyWishPlatform/sc-library#0.4.0"
+    "sc-library": "github:MyWishPlatform/sc-library#0.6.0"
   }
 }

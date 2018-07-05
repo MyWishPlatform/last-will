@@ -3,12 +3,14 @@ pragma solidity ^0.4.23;
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20Basic.sol";
 import "sc-library/contracts/Checkable.sol";
 import "sc-library/contracts/SoftDestruct.sol";
+import "sc-library/contracts/ERC223/ERC223Receiver.sol";
+import "sc-library/contracts/ERC223/ERC223Basic.sol";
 
 
 /**
  * The base LastWill contract. Check method must be overridden.
  */
-contract LastWill is SoftDestruct, Checkable {
+contract LastWill is SoftDestruct, Checkable, ERC223Receiver {
     struct RecipientPercent {
         address recipient;
         uint8 percent;
@@ -104,6 +106,13 @@ contract LastWill is SoftDestruct, Checkable {
     function kill() public {
         super.kill();
         emit Killed(true);
+    }
+
+    /**
+     * Reject not listed tokens.
+     */
+    function tokenFallback(address, uint, bytes) public {
+        require(isTokenAddressAlreadyInList(msg.sender));
     }
 
     function getTokenAddresses() public view returns (address[]) {
