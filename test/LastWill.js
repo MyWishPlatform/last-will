@@ -5,23 +5,19 @@ require('chai')
     .use(require('chai-as-promised'))
     .should();
 
-const { increaseTime, snapshot, revert } = require('sc-library/scripts/evmMethods');
-const { web3async } = require('sc-library/scripts/web3Utils');
-const getBalance = (address) => web3async(web3.eth, web3.eth.getBalance, address);
+const { increaseTime, snapshot, revert } = require('sc-library/test-utils/evmMethods');
 
-const Test = artifacts.require('./Test.sol');
 const LastWill = artifacts.require('./LastWillNotify.sol');
 const SimpleToken = artifacts.require('./SimpleToken.sol');
+const SimpleERC223Token = artifacts.require('./SimpleERC223Token.sol');
 
 const SECOND = 1;
 const MINUTE = 60 * SECOND;
 
 contract('LastWill', function (accounts) {
-    const SERVICE_ACCOUNT = accounts[0];
     const TARGET = accounts[1];
     const RECIPIENT_1 = accounts[2];
     const RECIPIENT_2 = accounts[3];
-    const RECIPIENT_3 = accounts[4];
 
     let snapshotId;
 
@@ -167,5 +163,13 @@ contract('LastWill', function (accounts) {
         addressesInContract = await lastWill.getTokenAddresses();
         addressesInContract.length.should.be.equals(1);
         addressesInContract[0].should.be.equals(tokens[0]);
+    });
+
+    it('#7 reject erc223 tokens', async () => {
+        const lastWill = await LastWill.new(TARGET, [RECIPIENT_1], [100], 2 * MINUTE, true);
+        await increaseTime(2 * MINUTE);
+        const erc223 = await SimpleERC223Token.new();
+        await erc223.transfer(lastWill.address, 1000).should.eventually.be.rejected;
+        await erc223.transfer(RECIPIENT_1, 1000);
     });
 });
