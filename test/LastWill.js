@@ -165,11 +165,18 @@ contract('LastWill', function (accounts) {
         addressesInContract[0].should.be.equals(tokens[0]);
     });
 
-    it('#7 reject erc223 tokens', async () => {
+    it('#7 reject not listed erc223 tokens', async () => {
         const lastWill = await LastWill.new(TARGET, [RECIPIENT_1], [100], 2 * MINUTE, true);
         await increaseTime(2 * MINUTE);
         const erc223 = await SimpleERC223Token.new();
         await erc223.transfer(lastWill.address, 1000).should.eventually.be.rejected;
-        await erc223.transfer(RECIPIENT_1, 1000);
+    });
+
+    it('#8 apply listed erc223 tokens', async () => {
+        const lastWill = await LastWill.new(TARGET, [RECIPIENT_1], [100], 2 * MINUTE, true);
+        await increaseTime(2 * MINUTE);
+        const erc223 = await SimpleERC223Token.new();
+        await lastWill.addTokenAddress(erc223.address);
+        await erc223.transfer(lastWill.address, 1000);
     });
 });
