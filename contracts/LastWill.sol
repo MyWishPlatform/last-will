@@ -34,7 +34,7 @@ contract LastWill is SoftDestruct, Checkable, ERC223Receiver {
     // ------------ EVENTS ----------------
     // Occurs when contract was killed.
     event Killed(bool byUser);
-    // Occurs when founds were sent.
+    // Occurs when funds were sent.
     event FundsAdded(address indexed from, uint amount);
     // Occurs when accident leads to sending funds to recipient.
     event FundsSent(address recipient, uint amount, uint percent);
