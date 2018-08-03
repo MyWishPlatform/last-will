@@ -96,7 +96,7 @@ contract LastWill is SoftDestruct, Checkable, ERC223Receiver {
   /**
    * @dev Removes token address.
    *
-   * @param _contracts Token contract to remove.
+   * @param _contract Token contract to remove.
    */
   function deleteTokenAddress(address _contract) public onlyTarget {
     require(_contract != address(0));
@@ -150,7 +150,7 @@ contract LastWill is SoftDestruct, Checkable, ERC223Receiver {
   /**
    * @dev Calculate amounts to transfer corresponding to the percents.
    *
-   * @param balance
+   * @param _balance current contract balance.
    */
   function internalCalculateAmounts(uint _balance) internal view returns (uint[] amounts) {
     uint remainder = _balance;
